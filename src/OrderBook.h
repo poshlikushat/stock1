@@ -11,8 +11,8 @@ class OrderBook final {
     std::unordered_map<size_t, std::multimap<double, Order>::iterator> indexBid;
     std::unordered_map<size_t, std::multimap<double, Order>::iterator> indexAsk;
 
-    std::multimap<double, Order, std::greater<>> bids; // лучшая цена первая
-    std::multimap<double, Order> asks;                       // лучшая (минимальная) цена первая
+    std::multimap<double, Order, std::greater<>> bids;          // лучшая цена первая
+    std::multimap<double, Order> asks;                          // лучшая (минимальная) цена первая
 
     std::mutex m;
 

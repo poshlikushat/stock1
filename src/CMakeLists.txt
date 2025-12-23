@@ -3,4 +3,4 @@ project(stock)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(logger ../main.cpp Exchange.cpp)
+add_executable(stock ../main.cpp Exchange.cpp)
