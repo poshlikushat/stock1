@@ -5,9 +5,9 @@
 #include <chrono>
 #include <iostream>
 
-void Exchange::registerBroker(Broker& b) {
+void Exchange::registerBroker(const std::shared_ptr<Broker>& b) {
     std::lock_guard<std::mutex> lk(brokersMutex);
-    brokers[b.id()] = &b;
+    brokers[b->id()] = b;
 }
 
 size_t Exchange::genOrderId() {
@@ -71,11 +71,11 @@ void Exchange::runLoop() {
 										<< " price=" << tr.price
 										<< "\n";
 
-        	Broker* buyer = nullptr;
-        	Broker* seller = nullptr;
+        	std::shared_ptr<Broker> buyer;
+        	std::shared_ptr<Broker> seller;
 	        {
         		std::lock_guard<std::mutex> lk(brokersMutex);
-        		buyer  = brokers[tr.buyerId];
+        		buyer = brokers[tr.buyerId];    // shared_ptr можно копировать
         		seller = brokers[tr.sellerId];
 	        }
 

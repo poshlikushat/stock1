@@ -14,8 +14,8 @@ protected:
 };
 
 TEST_F(ExchangeTest, SimpleTradeHappens) {
-	TestBroker buyer(1, 10000, 0, ex);
-	TestBroker seller(2, 0, 100, ex);
+	const auto buyer =  std::make_shared<TestBroker> (1, 10000, 0, ex);
+	const auto seller = std::make_shared<TestBroker> (2, 0, 100, ex);
 
 	ex.registerBroker(buyer);
 	ex.registerBroker(seller);
@@ -46,7 +46,7 @@ TEST_F(ExchangeTest, SimpleTradeHappens) {
 }
 
 TEST_F(ExchangeTest, SelfTradeIsRejected) {
-	TestBroker b(1, 10000, 100, ex);
+	const auto b = std::make_shared<TestBroker> (1, 10000, 100, ex);
 	ex.registerBroker(b);
 
 	Order buy{1, OrderType::Limit, OrderSide::Buy, 0, 5, 100, 0};
@@ -65,10 +65,10 @@ TEST_F(ExchangeTest, SelfTradeIsRejected) {
 
 
 TEST_F(ExchangeTest, AllFourBrokersParticipate) {
-	TestBroker b1(1, 10000, 100, ex);
-	TestBroker b2(2, 10000, 100, ex);
-	TestBroker b3(3, 10000, 100, ex);
-	BigWinBroker big(4, 10000, 100, ex, 0.01);
+	const auto b1 =  std::make_shared<TestBroker> (1, 10000, 100, ex);
+	const auto b2 =  std::make_shared<TestBroker> (2, 10000, 100, ex);
+	const auto b3 =  std::make_shared<TestBroker> (3, 10000, 100, ex);
+	const auto big = std::make_shared<BigWinBroker> (4, 10000, 100, ex, 0.01);
 
 	ex.registerBroker(b1);
 	ex.registerBroker(b2);
@@ -84,7 +84,7 @@ TEST_F(ExchangeTest, AllFourBrokersParticipate) {
 
 	std::thread bigThread([&]{
 			for (int i = 0; i < 10; ++i) {
-					big.step(i);
+					big->step(i);
 					std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			}
 	});
@@ -123,7 +123,7 @@ TEST(ExchangeFees, FeeApplied) {
 	Exchange ex;
 	ex.setFee(1.0, 1);
 
-	PlayerBroker p(1, 100.0, 10, ex);
+	const auto p = std::make_shared<PlayerBroker> (1, 100.0, 10, ex);
 	ex.registerBroker(p);
 
 	std::thread t([&]{ ex.runLoop(); });
@@ -151,10 +151,10 @@ TEST(ExchangeQuotes, BestBidAskUpdate) {
 TEST(Integration, MultiBrokerMarketLives) {
 	Exchange ex;
 
-	PlayerBroker p1(1,10000,50,ex);
-	PlayerBroker p2(2,10000,50,ex);
-	AnalystBroker a(3,10000,50,ex);
-	BigWinBroker b(4,20000,100,ex,0.03);
+	auto p1 = std::make_shared<PlayerBroker>(1,10000,50,ex);
+	auto p2 = std::make_shared<PlayerBroker>(2,10000,50,ex);
+	auto a  = std::make_shared<AnalystBroker>(3,10000,50,ex);
+	auto b  = std::make_shared<BigWinBroker>(4,20000,100,ex,0.03);
 
 	ex.registerBroker(p1);
 	ex.registerBroker(p2);
@@ -165,26 +165,28 @@ TEST(Integration, MultiBrokerMarketLives) {
 
 	std::thread exT([&]{ ex.runLoop(); });
 
-	auto run = [&](Broker& br){
-		int t=0;
-		while(alive){
-			br.step(t++);
+	auto run = [&](std::shared_ptr<Broker> br){
+		int t = 0;
+		while (alive) {
+			br->step(t++);
 			std::this_thread::sleep_for(std::chrono::milliseconds(20));
 		}
 	};
 
-	std::thread t1(run,std::ref(p1));
-	std::thread t2(run,std::ref(p2));
-	std::thread t3(run,std::ref(a));
-	std::thread t4(run,std::ref(b));
+	std::thread t1(run, p1);
+	std::thread t2(run, p2);
+	std::thread t3(run, a);
+	std::thread t4(run, b);
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(300));
-	alive=false; ex.stop();
+	alive = false;
+	ex.stop();
 
 	t1.join(); t2.join(); t3.join(); t4.join(); exT.join();
 
 	EXPECT_GT(ex.fairPriceEstimate(), 0);
 }
+
 
 
 

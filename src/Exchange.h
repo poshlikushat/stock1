@@ -17,7 +17,7 @@ class Exchange final {
     std::vector<Trade> allTrades;
 
     std::mutex brokersMutex;
-    std::unordered_map<int, Broker*> brokers;
+    std::unordered_map<int, std::shared_ptr<Broker>> brokers;
 
     std::atomic<bool> running{false};
     std::atomic<size_t> nextId{1};
@@ -26,7 +26,7 @@ class Exchange final {
     int feeEveryTicks = 50;
 
 public:
-    void registerBroker(Broker& b);
+    void registerBroker(const std::shared_ptr<Broker>& b);
 
     size_t genOrderId();
     void submitOrder(Order order);

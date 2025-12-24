@@ -1,7 +1,7 @@
 #pragma once
 #include "Broker.h"
 
-class TestBroker : public Broker {
+class TestBroker final : public Broker {
 public:
 	using Broker::Broker;
 
